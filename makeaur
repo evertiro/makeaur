@@ -22,7 +22,7 @@
 ############################################################
 BUILD_DIR=$HOME/.makeaur
 ARGUMENT=$1
-OPTION=$2
+MAKEARGS=cf
 VER=0.2
 ARCH=`arch`
 INFO="\e[1;34m=>\e[1;37m"
@@ -57,6 +57,7 @@ usage() {
 	echo "      Install package:          makeaur <package>"
 	echo "      Other functions:          makeaur <option>"
 	echo "Options:"
+	echo "      -m, --makeargs            Pass custom options to makepkg (default=cf)"
 	echo "      -h, --help                This message"
 	echo "      -v, --version             Output version information and exit"
 }
@@ -65,6 +66,11 @@ usage() {
 # Pacwrapper function - The main function                  #
 ############################################################
 pacwrapper() {
+	if [ -z $ARGUMENT ]; then
+		echo -e "$ERROR Package name is required!$RESSET"
+		exit 1
+	fi
+
 	if [ ! -d $BUILD_DIR/$ARGUMENT ]; then
 		mkdir -p $BUILD_DIR/$ARGUMENT
 	fi
@@ -73,7 +79,7 @@ pacwrapper() {
 		echo -e "$SUCCESS Package $ARGUMENT already exists in build directory.$RESET"
 	else
 		echo -e "$INFO Downloading package $ARGUMENT...$RESET"
-		wget -nv http://aur.archlinux.org/packages/$ARGUMENT/$ARGUMENT.tar.gz
+		wget -nv http://aur.archlinux.org/packages/$ARGUMENT/$ARGUMENT.tar.gz &> /dev/null
 		if [ ! -f $ARGUMENT.tar.gz ]; then
 			echo -e "$ERROR Package $ARGUMENT does not exist, exiting.$RESET"
 			cleanup
@@ -85,7 +91,7 @@ pacwrapper() {
 	tar -xf $ARGUMENT.tar.gz
 	cd $ARGUMENT
 	echo -e "$INFO Beginning make process for $ARGUMENT...$RESET"
-	makepkg -f
+	makepkg -$MAKEARGS
 	if [ ! -f $ARGUMENT*.pkg.tar.gz ]; then
 		echo -e "$ERROR Running makepkg for package $ARGUMENT failed."
 		cleanup
@@ -110,6 +116,11 @@ case "$1" in
 	;;
 	'-v'|'--version')
 	version
+	;;
+	'-m'|'--makeargs')
+	MAKEARGS=$2
+	ARGUMENT=$3
+	pacwrapper
 	;;
 	*)
 	pacwrapper
