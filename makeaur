@@ -23,7 +23,7 @@
 BUILD_DIR=$HOME/.makeaur
 ARGUMENT=$1
 MAKEARGS=cf
-VER=0.2
+VER=0.3
 ARCH=`arch`
 INFO="\e[1;34m=>\e[1;37m"
 ERROR="\e[1;31m=>\e[1;37m"
@@ -75,12 +75,12 @@ pacwrapper() {
 		mkdir -p $BUILD_DIR/$ARGUMENT
 	fi
 	cd $BUILD_DIR/$ARGUMENT
-	if [ -f $ARGUMENT.tar.gz ]; then
+	if [ -f $ARGUMENT.tar.* ]; then
 		echo -e "$SUCCESS Package $ARGUMENT already exists in build directory.$RESET"
 	else
 		echo -e "$INFO Downloading package $ARGUMENT...$RESET"
 		wget -nv http://aur.archlinux.org/packages/$ARGUMENT/$ARGUMENT.tar.gz &> /dev/null
-		if [ ! -f $ARGUMENT.tar.gz ]; then
+		if [ ! -f $ARGUMENT.tar.* ]; then
 			echo -e "$ERROR Package $ARGUMENT does not exist, exiting.$RESET"
 			cleanup
 		else
@@ -88,18 +88,18 @@ pacwrapper() {
 		fi
 	fi
 	echo -e "$INFO Extracting package $ARGUMENT...$RESET"
-	tar -xf $ARGUMENT.tar.gz
+	tar -xf $ARGUMENT.tar.*
 	cd $ARGUMENT
 	echo -e "$INFO Beginning make process for $ARGUMENT...$RESET"
 	makepkg -$MAKEARGS
-	if [ ! -f $ARGUMENT*.pkg.tar.gz ]; then
+	if [ ! -f $ARGUMENT*.pkg.tar.* ]; then
 		echo -e "$ERROR Running makepkg for package $ARGUMENT failed."
 		cleanup
 	else
 		echo -e "$SUCCESS Running makepkg for package $ARGUMENT completed successfully.$RESET"
 		echo -e "$INFO Now installing package $ARGUMENT...$RESET"
-		PKGVER=`ls $ARGUMENT*.pkg.tar.gz | sed s/$ARGUMENT-// | sed s/-$ARCH.pkg.tar.gz//`
-		sudo pacman -U $ARGUMENT-$PKGVER-$ARCH.pkg.tar.gz
+		PKGVER=`ls $ARGUMENT*.pkg.tar.* | sed s/$ARGUMENT-// | sed s/-$ARCH.pkg.tar.*//`
+		sudo pacman -U $ARGUMENT-$PKGVER-$ARCH.pkg.tar.*
 		INSTVER=`pacman -Q $ARGUMENT`
 		if [ "$INSTVER" != "$ARGUMENT $PKGVER" ]; then
 			echo -e "$ERROR Installation of package $ARGUMENT failed, exiting.$RESET"
